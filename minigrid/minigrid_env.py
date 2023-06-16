@@ -521,6 +521,8 @@ class MiniGridEnv(gym.Env):
         reward = 0
         terminated = False
         truncated = False
+        sparse_reward = 0
+
 
         # Get the position in front of the agent
         fwd_pos = self.front_pos
@@ -544,7 +546,7 @@ class MiniGridEnv(gym.Env):
                 self.agent_pos = tuple(fwd_pos)
             if fwd_cell is not None and fwd_cell.type == "goal":
                 terminated = True
-                reward = self._reward()
+                sparse_reward = self._reward()
             if fwd_cell is not None and fwd_cell.type == "lava":
                 terminated = True
 
@@ -575,6 +577,15 @@ class MiniGridEnv(gym.Env):
         else:
             raise ValueError(f"Unknown action: {action}")
 
+        # Dense reward
+        if self.carrying is None:
+            reward = self.calculate_euclidean_distance(self.agent_pos, self.key_pos)
+        else:
+            reward = self.calculate_euclidean_distance(self.agent_pos, self.goal_pos)
+
+        reward += sparse_reward
+        #reward = sparse_reward
+
         if self.step_count >= self.max_steps:
             truncated = True
 
@@ -584,6 +595,20 @@ class MiniGridEnv(gym.Env):
         obs = self.gen_obs()
 
         return obs, reward, terminated, truncated, {}
+
+
+    def calculate_euclidean_distance(self, pos, goal_target):
+        """Calculate Euclidean distances to two targets from a given position.
+
+        Args:
+            pos (tuple): Position of the point in the 2D grid as (x, y).
+            goal_target (tuple): First target's position in the 2D grid as (x, y).
+        Returns:
+            tuple: Distances to target_1 and target_2 from the given position.
+        """
+        dist_to_target = math.sqrt((pos[0] - goal_target[0]) ** 2 + (pos[1] - goal_target[1]) ** 2)
+        return dist_to_target
+
 
     def gen_obs_grid(self, agent_view_size=None):
         """

@@ -68,6 +68,9 @@ class DoorKeyEnv(MiniGridEnv):
             mission_space=mission_space, grid_size=size, max_steps=max_steps, **kwargs
         )
 
+        self.goal_pose = None
+        self.key_pose = None
+
     @staticmethod
     def _gen_mission():
         return "use the key to open the door and then get to the goal"
@@ -81,6 +84,7 @@ class DoorKeyEnv(MiniGridEnv):
 
         # Place a goal in the bottom-right corner
         self.put_obj(Goal(), width - 2, height - 2)
+        self.goal_pos = (width - 2, height - 2)
 
         # Create a vertical splitting wall
         splitIdx = self._rand_int(2, width - 2)
@@ -95,6 +99,6 @@ class DoorKeyEnv(MiniGridEnv):
         self.put_obj(Door("yellow", is_locked=True), splitIdx, doorIdx)
 
         # Place a yellow key on the left side
-        self.place_obj(obj=Key("yellow"), top=(0, 0), size=(splitIdx, height))
+        self.key_pos  = self.place_obj(obj=Key("yellow"), top=(0, 0), size=(splitIdx, height))
 
         self.mission = "use the key to open the door and then get to the goal"
